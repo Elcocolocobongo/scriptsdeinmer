@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         FILL DE RUMBLE v2
+// @name         OTROOO FILL
 // @namespace    Violentmonkey Scripts
 // @match        https://rumble.com/upload.php*
 // @grant        none
@@ -28,22 +28,21 @@
     const mainLogic = () => {
         if (isRedirecting) return;
 
-        // --- 1. LÓGICA DE AUTO-LLENADO (TUS CONFIGURACIONES) ---
+        // --- 1. DETECCIÓN DE ELEMENTOS ---
         const fileInput = document.querySelector('input#Filedata');
         const titleInput = document.getElementById('title');
         const hiddenVideoInput = document.querySelector('input[name="video[]"]');
 
-        // REVISIÓN DEL VIDEO: ¿Ya tiene el ID temporal?
+        // LA LLAVE: ¿Rumble ya le asignó un ID al video?
         const isVideoReady = hiddenVideoInput && hiddenVideoInput.value !== "";
 
-        // Auto-título
+        // --- 2. AUTO-LLENADO ---
         if (fileInput && fileInput.files && fileInput.files.length > 0 && titleInput && !titleInput.value) {
             let originalName = fileInput.files[0].name;
             titleInput.value = formatTitle(originalName);
             titleInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
-        // Categoría Entertainment (ID 15)
         const catInput = document.querySelector('input[name="primary-category"]');
         if (catInput && !catInput.value) {
             catInput.click();
@@ -57,23 +56,21 @@
             }, 150);
         }
 
-        // Visibilidad Privada
         const privInput = document.getElementById('visibility_private');
         if (privInput && !privInput.checked) {
             document.querySelector('label[for="visibility_private"]')?.click();
         }
 
-        // --- 2. PRIMER CLICK: UPLOAD (#submitForm) ---
+        // --- 3. DISPARO DEL PRIMER UPLOAD ---
         const uploadBtn = document.getElementById('submitForm');
 
         if (!step1Submitted && isVideoReady && titleInput?.value && catInput?.value && privInput?.checked && uploadBtn && uploadBtn.offsetParent !== null) {
-            console.log(">>> Video procesado. Click en el primer Upload...");
+            console.log("🎯 Video detectado en el sistema. Pulsando Upload...");
             step1Submitted = true;
             hardClick(uploadBtn);
         }
 
-        // --- 3. SEGUNDO PASO: LICENCIAS Y SUBMIT FINAL ---
-        // Uso Personal (Botón verde crcval="0")
+        // --- 4. LICENCIAS Y ENVÍO FINAL ---
         const personalBtn = document.querySelector('a.greenLink[crcval="0"]');
         if (personalBtn) {
             const container = personalBtn.closest('.wight-box');
@@ -83,30 +80,28 @@
             }
         }
 
-        // Checkboxes de derechos y términos
         const c1 = document.getElementById('crights');
         const c2 = document.getElementById('cterms');
         if (c1 && !c1.checked) document.querySelector('label[for="crights"]')?.click();
         if (c2 && !c2.checked) document.querySelector('label[for="cterms"]')?.click();
 
-        // Botón final de Submit
         const submitBtn2 = document.getElementById('submitForm2');
         if (!step2Submitted && c1?.checked && c2?.checked && submitBtn2 && submitBtn2.offsetParent !== null) {
-            console.log(">>> Enviando confirmación final...");
+            console.log("🚀 Enviando paso final...");
             step2Submitted = true;
             hardClick(submitBtn2);
         }
 
-        // --- 4. RETORNO INSTANTÁNEO AL ÉXITO ---
+        // --- 5. RETORNO TURBO ---
         const successMessage = Array.from(document.getElementsByTagName('h3'))
                                     .find(h => h.textContent.trim() === "Video Upload Complete!" && h.offsetParent !== null);
 
         if (successMessage) {
             isRedirecting = true;
+            console.log("✅ ¡Listo! Volviendo a la carga...");
             window.location.href = "https://rumble.com/upload.php";
         }
     };
 
-    // Revisar cada 400ms para que sea rápido pero estable
     setInterval(mainLogic, 400);
 })();
